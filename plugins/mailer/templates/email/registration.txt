@@ -1,8 +1,22 @@
-Hi {{team_name}}!
-Welcome and thanks for registration.
+Hola {{team_name}}!
+Bienvenido al CTF de BSidesCo.
 
-We hope you enjoy our game, and learn something along the way.
-Here are your credentials:
+Para activar tu cuenta visita: https://example.com/activate/{{uid}}/{{token}}/
 
-Username: {{team_name}}
-Password: *******
+Ten presente lo siguiente:
+
+- Las banderas válidas las podrás identificar porque tienen el formato BSidesCo{flag}
+- Hay retos que solo se resuelven teniendo acceso al lugar del evento.
+- Hay retos que se irán liberando a medida que se solucionen los que estén disponibles, así que atento a la plataforma!
+- El puntaje de cada reto varía según la cantidad de personas que lo solucionan, es decir, mientras más lo soluciones menos puntos vale.
+- Los primeros 10 jugadores en resolver un reto tienen una bonificación. 10 puntos el primero, 9 el segundo o 1 el décimo.
+- Evita compartir banderas, además de ser trampa hace que quien la reciba no aprenda.
+- No sabotear a otros participantes, de ninguna manera está permitido obstaculizar su progreso.
+- No borrar banderas ni romper servicios, ni atacar la infraestructura de la competencia. Si encuentras algún fallo por favor repórtalo con los admin.
+- No genere cargas excesivas. No es necesario hacer "Bruteforcing" o "DirBusting" ya que todos los retos están diseñados para identificar con facilid.
+- No registre múltiples cuentas.
+- En la plataforma está el contador que indicará el tiempo que resta para iniciar o finalizar el juego.
+- En caso de ganar debes compartir tu solucionario, es un requisito para acceder al premio.
+- El premio será anunciado durante el segundo día del evento.
+
+Esperamos que disfrute el juego y aprendas nuevas cosas en el camino.

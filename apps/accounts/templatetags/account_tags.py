@@ -21,13 +21,13 @@ def int_to_en(num):
     if len(value) > 1:
         secondToLastDigit = value[-2]
         if secondToLastDigit == '1':
-            return '{0}th'.format(value)
+            return '{0}o'.format(value)
     lastDigit = value[-1]
     if (lastDigit == '1'):
-        return '{0}st'.format(value)
+        return '{0}er'.format(value)
     elif (lastDigit == '2'):
-        return '{0}nd'.format(value)
+        return '{0}o'.format(value)
     elif (lastDigit == '3'):
-        return '{0}rd'.format(value)
+        return '{0}er'.format(value)
     else:
-        return '{0}th'.format(value)
+        return '{0}o'.format(value)

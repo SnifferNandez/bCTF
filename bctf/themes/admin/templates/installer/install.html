@@ -12,7 +12,7 @@
 <form method="POST" action="{% url 'installer' %}" id="installForm">
     {% csrf_token %}
 
-    <h1>Setup bCTF</h1>
+    <h1>CTF Setup</h1>
 
     <div class="tab"><h4>General information:</h4>
         <p><input placeholder="CTF Name ..." oninput="this.className = ''" name="ctf_name"></p>
@@ -21,7 +21,7 @@
     <div class="tab"><h4>Administrator account:</h4>
         <p><input placeholder="Username" oninput="this.className = ''" name="admin_username"></p>
         <p><input placeholder="E-mail..." oninput="this.className = ''" name="admin_email"></p>
-        <p><input placeholder="Password" oninput="this.className = ''" name="admin_password"></p>
+        <p><input placeholder="Password" oninput="this.className = ''" name="admin_password" type="password"></p>
     </div>
 
     <div style="overflow:auto;">

@@ -3,7 +3,6 @@
 from django.db import migrations
 import django_countries.fields
 
-
 class Migration(migrations.Migration):
 
     dependencies = [

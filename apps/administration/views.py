@@ -30,7 +30,7 @@ class IndexView(UserIsAdminMixin, ListView):
     queryset = BadSubmission.objects.prefetch_related(
         'account').prefetch_related('challenge')
     context_object_name = 'bad_submissions'
-    paginate_by = 10
+    paginate_by = 50
     template_name = 'templates/informations.html'
 
     def get_context_data(self, **kwargs):

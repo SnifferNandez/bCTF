@@ -1,6 +1,7 @@
 #!/bin/sh
 
 set -e
+FILE=/app/bctf/media/start.ok
 
 echo "Waiting for database"
 while ! mysqladmin ping -h db --silent; do
@@ -9,9 +10,15 @@ while ! mysqladmin ping -h db --silent; do
 done
 echo "Database ready for connections."
 
-echo "Migrating Database"
-python manage.py migrate
-python manage.py flush --noinput
+
+if [ -f "$FILE" ]; then
+    echo "$FILE exist"
+else 
+    touch $FILE	
+    echo "Migrating Database"
+    python manage.py migrate
+    python manage.py flush --noinput
+fi
 
 echo "Starting bCTF."
 exec gunicorn --chdir /app/ \

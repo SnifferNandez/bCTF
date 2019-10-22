@@ -1,6 +1,7 @@
 import os
 from django.db import models
 from apps.accounts.models import Account
+import math
 
 
 class Category(models.Model):
@@ -48,8 +49,45 @@ class Solves(models.Model):
 
     def save(self, force_insert=False, force_update=False, using=None):
         self.account.points += self.challenge.points
+        # Dynamic Score
+        # based on https://github.com/CTFd/CTFd/tree/master/CTFd/plugins/dynamic_challenges/README.md
+        min_val = 10
+        max_solv = 50
+        print('Logging of dynamic score')
+        print(self.challenge.id)
+        solved = self.challenge.solves.count()
+        ini_pts = 1000
+        past_pts = int(math.ceil((((min_val - ini_pts) / (max_solv ** 2)) * ((solved-1) ** 2)) + ini_pts))
+        value = int(math.ceil((((min_val - ini_pts) / (max_solv ** 2)) * (solved ** 2)) + ini_pts))
+        if value < min_val:
+            value = min_val
+        # end of based formula
+
+        #FirstBlood bonus
+        if solved <= 10:
+            self.account.points = self.account.points + 10 - solved
         self.account.save()
         super().save()
+
+        # Check if an score update is needed
+        if value > min_val or past_pts > min_val :
+            lchallenge = Challenge.objects.get(pk=self.challenge.id)
+            # Save the next score, the future value
+            fut_value = int(math.ceil((((min_val - ini_pts) / (max_solv ** 2)) * ((solved+1) ** 2)) + ini_pts))
+            if fut_value < min_val:
+                fut_value = min_val
+            lchallenge.points = fut_value
+            lchallenge.save()
+            # Update all the accounts points!
+            for i in range(1, Account.objects.count()):
+                solves = Solves.objects.prefetch_related('challenge').prefetch_related('challenge__category').filter(account=i)
+                next((x for x in solves if x.challenge.id == self.challenge.id), None)
+                for solve in solves:
+                    if solve.challenge.id == self.challenge.id:
+                        laccount = Account.objects.get(pk=i)
+                        laccount.points = laccount.points - past_pts + value
+                        laccount.save()
+
 
     def delete(self, *args, **kwargs):
         if self.account.points > self.challenge.points:

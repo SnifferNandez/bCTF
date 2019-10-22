@@ -6,9 +6,13 @@ from apps.accounts.models import Account
 from apps.challenges.models import Solves, Challenge
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
+import datetime
+import pytz
+import math
 
+TIME_CACHE = 15 # In ms
 
-@cache_page(60 * 3)
+@cache_page(TIME_CACHE)
 def scores(request):
     if request.method == 'GET':
         response = {}
@@ -16,7 +20,7 @@ def scores(request):
 
         total_points = cache.get('total_points')
         if total_points is None:
-            total_points = Challenge.objects.aggregate(Sum('points'))['points__sum']
+            total_points = Challenge.objects.filter(visible=True).aggregate(Sum('points'))['points__sum']
             cache.set('total_points', int(total_points), timeout=120)
 
         accounts_scored = cache.get('accounts_scored')
@@ -28,6 +32,7 @@ def scores(request):
             team = {}
             team['id'] = account.pk
             team['name'] = account.username
+            team['attendant'] = account.attendant
             team['country'] = account.country.flag_css
             team['country_name'] = account.country.name
             team['country_code'] = account.country.code
@@ -40,7 +45,7 @@ def scores(request):
         return JsonResponse(response)
 
 
-@cache_page(60 * 3)
+@cache_page(TIME_CACHE)
 def top_scores(request):
     if request.method == 'GET':
         response = {}
@@ -58,7 +63,19 @@ def top_scores(request):
                     chall['chal'] = solve.challenge_id
                     chall['team'] = account.pk
                     chall['time'] = int(solve.created_at.timestamp())
-                    chall['value'] = solve.challenge.points
+                    #chall['value'] = solve.challenge.points
+                    # Dynamic Score
+                    # based on https://github.com/CTFd/CTFd/tree/master/CTFd/plugins/dynamic_challenges/README.md
+                    min_val = 10
+                    max_solv = 5
+                    solved = solve.challenge.solves.count()
+                    ini_pts = 1000
+                    act_pts = solve.challenge.points
+                    value = int(math.ceil((((min_val - ini_pts) / (max_solv ** 2)) * ((solved-1) ** 2)) + ini_pts))
+                    if value < min_val:
+                        value = min_val
+                    # end of based formula
+                    chall['value'] = value
                     team['solves'].append(chall)
 
                 response['ranks'].update({rank: team})
@@ -68,7 +85,7 @@ def top_scores(request):
             return JsonResponse(response)
 
 
-@cache_page(60 * 7)
+@cache_page(TIME_CACHE)
 def events(request):
     if request.method == 'GET':
         response = {}
@@ -81,13 +98,15 @@ def events(request):
             new_event['team_id'] = event.account_id
             new_event['challenge'] = event.challenge.name
             new_event['challenge_id'] = event.challenge.id
-            new_event['time'] = event.created_at.strftime("%Y-%m-%d %H:%M")
+            #new_event['time'] = event.created_at #.timestamp() #.strftime("%Y-%m-%d %H:%M")
+            d = datetime.datetime.fromtimestamp(int(event.created_at.timestamp()), pytz.timezone('America/Bogota'))
+            new_event['time'] = d.strftime("%Y-%m-%d %H:%M")
             response['events'].append(new_event)
         
         return JsonResponse(response)
 
 
-@cache_page(60 * 3)
+@cache_page(TIME_CACHE)
 def teams(request):
     if request.method == 'GET':
         response = {}

@@ -9,8 +9,10 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django_countries.fields import CountryField
 from django.db.models.signals import post_save
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
 from apps.teams.models import Team
-
+from apps.accounts.token import account_activation_token
 
 logger = logging.getLogger(__name__)
 
@@ -23,15 +25,19 @@ def create_pagan(sender, instance, created, **kwargs):
         thumbs = [50, 256]
         img.save(thumbs=thumbs, path=avatar_folder, filename=avatar_name)
 
-
 def notify_registration(sender, instance, created, **kwargs):
     if created:
-        print("Sending email...")
-        msg_plain = render_to_string('email/registration.txt', {'team_name': instance.username})
+        print("Sending email to " + instance.email)
+        msg_plain = render_to_string('email/registration.txt',
+            {'team_name' : instance.username,
+             'uid' : urlsafe_base64_encode(force_bytes(instance.pk)),
+             'token' : account_activation_token.make_token(instance)})
+             #'token': '31337'})
+        #print(msg_plain)
 
         try:
             send_mail(
-                'New Registration - bCTF',
+                'Registro BSidesCo CTF',
                 msg_plain,
                 settings.EMAIL_HOST_USER,
                 [instance.email],
@@ -40,9 +46,10 @@ def notify_registration(sender, instance, created, **kwargs):
             print("Error: {0}".format(str(excp)))
             pass
 
-
 class Account(AbstractUser):
-    banned = models.BooleanField(default=False)
+    banned = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
+    attendant = models.BooleanField(default=False)
     country = CountryField(null=True, blank=True)
     team = models.ForeignKey(Team, on_delete=models.PROTECT, null=True, blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)

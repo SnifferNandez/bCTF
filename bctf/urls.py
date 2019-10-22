@@ -3,7 +3,7 @@ from django.conf import settings
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from apps.accounts.views import RegistrationView, ProfileView, AccountUpdateView, Login
+from apps.accounts.views import RegistrationView, ProfileView, AccountUpdateView, Login, ActivateView
 from apps.installer.views import InstallView
 from api.account_views import AccountViewSet
 from api.scoreboard_views import ScoreboardViewSet
@@ -30,13 +30,14 @@ urlpatterns += [
     # accounts
     path('accounts/login/', Login.as_view(), name="login"),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name="logout"),
-    path('accounts/password_reset/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset.html'), name='password-reset'),
-    path('accounts/password_reset_done/', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), name='password_reset_done'),
-    path('accounts/password_reset_confirm/<slug:uidb64>/<slug:token>/)', auth_views.PasswordResetConfirmView.as_view(template_name='registration/password_reset_confirm.html'), name='password_reset_confirm'),
-    path('accounts/password_reset_complete/', auth_views.PasswordResetCompleteView.as_view(template_name='registration/password_reset_complete.html'), name='password_reset_complete'),
+    path('accounts/password_reset/', auth_views.PasswordResetView.as_view(template_name='templates/registration/password_reset.html',email_template_name='templates/registration/password_reset_email.html'), name='password-reset'),
+    path('accounts/password_reset_done/', auth_views.PasswordResetDoneView.as_view(template_name='templates/registration/password_reset_done.html'), name='password_reset_done'),
+    path('accounts/password_reset_confirm/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='templates/registration/password_reset_confirm.html'), name='password_reset_confirm'),
+    path('accounts/password_reset_complete/', auth_views.PasswordResetCompleteView.as_view(template_name='templates/registration/password_reset_complete.html'), name='password_reset_complete'),
     path('accounts/profile/<int:pk>', ProfileView.as_view(), name="profile"),
     path('accounts/settings/', AccountUpdateView.as_view(), name="account-settings"),
     path('registration/', RegistrationView.as_view(), name='registration'),
+    path('activate/<uidb64>/<token>/', ActivateView.as_view(), name='activate'),
 
     # API
     path('api-auth/', include('rest_framework.urls')),

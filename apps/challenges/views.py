@@ -17,6 +17,7 @@ from apps.challenges.models import (Attachment, BadSubmission, Category,
                                     Challenge, FirstBlood, Flag, Solves,
                                     Hint)
 from apps.scoreboard.utils import get_key
+from django.core.exceptions import PermissionDenied
 
 
 class UserIsAdminMixin(UserPassesTestMixin):
@@ -46,6 +47,8 @@ class ChallengesListView(LoginRequiredMixin, View):
         context['categories'] = Category.objects.prefetch_related('challenge_set').all()
         context['solved_by_user'] = solves.prefetch_related('challenge').values_list(
             'challenge', flat=True).filter(account=self.request.user.pk)
+        #context['solves'] = solves.values("challenge__name").annotate(
+            #c=Count('challenge')).order_by('-c')
         context['solves'] = solves.values("challenge__name").annotate(
             c=Count('challenge')).order_by('-c')
         context['first_bloods'] = FirstBlood.objects.prefetch_related(
@@ -55,19 +58,23 @@ class ChallengesListView(LoginRequiredMixin, View):
 
 class SubmitFlagView(RatelimitMixin, CtfNotEnded, LoginRequiredMixin, FormView):
     ratelimit_key = 'user'
-    ratelimit_rate = '10/m'
+    ratelimit_rate = '5/m'
     ratelimit_method = 'POST'
     ratelimit_block = True
     form_class = SubmitFlagForm
 
     def get_context_data(self, **kwargs):
         context = super(SubmitFlagView, self).get_context_data(**kwargs)
-        context['challenge'] = Challenge.objects.get(pk=self.kwargs['pk'])
-        context['solvers'] = Solves.objects.filter(
-            challenge=context['challenge'])
-        context['solved_by_user'] = Solves.objects.filter(
-            account=self.request.user.pk).values_list('challenge', flat=True)
-        return context
+        chall_obj = Challenge.objects.get(pk=self.kwargs['pk'])
+        if chall_obj.visible == False:
+            raise PermissionDenied()
+        else:
+            context['challenge'] = chall_obj
+            context['solvers'] = Solves.objects.filter(
+                challenge=context['challenge'])
+            context['solved_by_user'] = Solves.objects.filter(
+                account=self.request.user.pk).values_list('challenge', flat=True)
+            return context
 
     def get_template_names(self):
         return list(['templates/challenge/challenge.html'])
@@ -97,9 +104,9 @@ class SubmitFlagView(RatelimitMixin, CtfNotEnded, LoginRequiredMixin, FormView):
                     account=self.request.user,
                     flag=flag
                 )
-                return render(self.request, 'templates/challenge/challenge.html', {'challenge': challenge, 'solvers': Solves.objects.filter(challenge=challenge), 'error': 'Wrong flag!'})
+                return render(self.request, 'templates/challenge/challenge.html', {'challenge': challenge, 'solvers': Solves.objects.filter(challenge=challenge), 'error': 'Bandera errada :('})
         else:
-            return render(self.request, 'templates/challenge/challenge.html', {'challenge': challenge, 'solvers': Solves.objects.filter(challenge=challenge), 'error': 'Already solved!'})
+            return render(self.request, 'templates/challenge/challenge.html', {'challenge': challenge, 'solvers': Solves.objects.filter(challenge=challenge), 'error': 'Ya esta hecho!'})
 
 
 class CreateChallengeView(SuccessMessageMixin, LoginRequiredMixin, UserIsAdminMixin, FormView):

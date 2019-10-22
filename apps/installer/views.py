@@ -38,6 +38,7 @@ class InstallView(UserIsAnonymousMixin, View):
                     is_superuser=True,
                     is_staff=True,
                     is_active=True,
+                    banned=False,
                 )
                 new_admin.set_password(request.POST['admin_password'])
                 new_admin.save()

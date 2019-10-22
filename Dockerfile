@@ -29,11 +29,12 @@ RUN apk add --no-cache --virtual .build-deps \
     && apk del .build-deps
 
 ENV DJANGO_SETTINGS_MODULE bctf.settings.production
+# ENV DJANGO_SETTINGS_MODULE bctf.settings.development
 
 RUN python manage.py collectstatic --noinput
 RUN rm -rf ./static/
 
-EXPOSE 31337
+# EXPOSE 31337
 # CMD ["/usr/local/bin/gunicorn", "--chdir", "/app/", "--workers=4", "bctf.wsgi", "-b", "0.0.0.0:8000"]
 
 ENTRYPOINT [ "/app/docker-entrypoint.sh" ]
